@@ -103,3 +103,25 @@ I used `0x8000` instead of `0xb8000`, duh...
 Ok, I now get lovely teal text, nice!
 
 Also add the `cargo run` shortcut for the next chapters, very handy.
+
+## Part 3: [VGA Text Mode](https://os.phil-opp.com/vga-text-mode/)
+
+Learn about [code page 437](https://en.wikipedia.org/wiki/Code_page_437), the encoding used in VGA text mode. This has all those box drawing glyphs, as well as some shaded blocks.
+
+Incredibly, it also has: smileys, card deck symbols(?!), male/female signs, music notes, a sun & some greek/math characters. Interesting bit of history here, this reflects what PCs were used for, or at least _thought to be useful for_ in the 80s: the male/female icons were probably intended to be used for some HR employee database type programs (IBM's bread and butter, after all...), and the card decks for elite hardcore gaming. (More importantly: **are these the first emojis???**)
+
+Implement the `Color` enum and `ColorCode` struct.
+
+The `ColorCode(u8)` single-value struct pattern is interesting, it looks like it's basically like `newtype` in Haskell. `#[repr(transparent)]` ensures that it's represented exactly like the field itself (when would this _not_ happen?).
+
+Also, having to derive `PartialEq` _and_ `Eq` all the time seems like a real wart, surely `Eq` should imply `PartialEq` somehow...?
+
+The `Buffer` struct definition is interesting, I can see why you might need `#[repr(transparent)]` for some more complex types.
+
+Add the `Writer` type definition. How can I make this `pub` if the underlying types aren't `pub`? Does `pub` just mean that I can publicly instantiate the type? Surely not?
+
+The `'static` lifetime makes sense: the VGA buffer is always available.
+
+In `write_byte`, why is `row = BUFFER_HEIGHT - 1`? I would have thought we start at 0, and advance based on character position? Maybe this will be implemented next.
+
+Works though, I get some nice colored text on the bottom of the screen.
