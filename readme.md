@@ -137,3 +137,19 @@ We've now reduced the unsafe part to `unsafe { &mut *(0xb8000 as *mut Buffer) }`
 `Buffer` interprets that memory location as a 2D array of size `BUFFER_WIDTH` * `BUFFER_HEIGHT`. Memory accesses to arrays in Rust are bounds checked by default, so we get memory safety. What happens if I write to `col + 100000` though? I would have expected to get a panic, but I don't seem to. Hmm... Can I even observe a panic yet? Not really, it just loops. Okay.
 
 Instead, set `col + 70`, and the row to `BUFFER_HEIGHT - 5`. Then, if bounds aren't checked, I'd expect the whole string to be written to screen. If we panic, I expect to only see part of it. And I do. Nice!
+
+Copy/paste the `println!` macro stuff. Ain't nobody got time for that.
+
+We are now able to make the panic handler write some stuff to the VGA buffer, nice.
+
+Incredibly sick that the panic handler has full file/line/column info with the error message. Can you even imagine how much effort that would have been to set up in C...
+
+Very cool, learnt lots in this chapter. Still very straightforward, but I can already see the years of wisdom & work contained in the various crates we're using (and even language features!). Again, makes me shudder even thinking about having to do all of this in C, with absolutely no indication that anything is going wrong. No wonder nobody has actually made any new OSs/kernels in the last 30 years! I do hope that this will keep getting easier, and we can finally enter into an era of more people experimenting with new operating systems.
+
+## Part 4: [Testing](https://os.phil-opp.com/testing/)
+
+I'm running out of time here, but had a quick read through the chapter. Very cool stuff. Again, would be so much work to implement this yourself in C. So much useful stuff that we can rely on from the Rust ecosystem: serial communication, test runner, x86_64 syscalls, etc. Really cool.
+
+Does make me wonder if the approach of building "microkernels" (nanokernels? picokernels??) like this could actually be a viable approach for building super high performance single-use bare metal applications. Very interesting stuff.
+
+**To be continued...**
