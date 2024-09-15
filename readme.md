@@ -77,3 +77,29 @@ First time I try the build it gives me a helpful error telling me to add `rust-s
 Next try, the build works. Nice!
 
 Interesting that `core` depends on 14 crates. Pretty cool.
+
+Ok, getting to the first interesting part, writing to screen using VGA. Baby's first `unsafe` as well.
+
+Tiny code change, I define `let offset = i as isize * 2` instead of repeating it. Can't see why this would break.
+
+## Running our Kernel
+
+Install `bootloader = "0.9"`. Was tempted to install the latest version, but the post explicitly warns against it. Thanks! (Would have been a classic off-the-rail moment...)
+
+Nice that they built the `bootimage` tool too, this seems like it would have been a major pain in the ass to do manually.
+
+Install QEMU using Homebrew (`brew install qemu`), let's see if this works.
+
+`qemu-system-x86_64 -drive format=raw,file=target/x86_64-blog_os/debug/bootimage-blog_os.bin` does open up a window, that's already a success!
+
+It's blank though, hmm... Let's see, what did I mess up in the VGA code?
+
+```rust
+let vga_buffer = 0xb8000 as *mut u8;
+```
+
+I used `0x8000` instead of `0xb8000`, duh...
+
+Ok, I now get lovely teal text, nice!
+
+Also add the `cargo run` shortcut for the next chapters, very handy.
