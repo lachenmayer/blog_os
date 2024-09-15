@@ -125,3 +125,15 @@ The `'static` lifetime makes sense: the VGA buffer is always available.
 In `write_byte`, why is `row = BUFFER_HEIGHT - 1`? I would have thought we start at 0, and advance based on character position? Maybe this will be implemented next.
 
 Works though, I get some nice colored text on the bottom of the screen.
+
+Learn about [`volatile`](https://crates.io/crates/volatile). Have a quick peek at the implementation, but it doesn't really make sense -- some advanced Rust magic. Anyway, probably not necessary to actually understand.
+
+Also learn about [`lazy_static`](https://docs.rs/lazy_static/1.0.1/lazy_static/). Feels like a hack, this should really not be necessary... The compiler did give me some helpful-ish-looking solutions that don't rely on this, but this would probably imply messing around with the type definition which I don't want to do.
+
+Next up, [`spin`](https://crates.io/crates/spin), a spinlock. Don't fully understand why we need this for now -- I see why `static mut` would be an issue though.
+
+We've now reduced the unsafe part to `unsafe { &mut *(0xb8000 as *mut Buffer) }`. Bit of a crazy expression: cast the address to a mutable pointer of `Buffer`, dereference it, then take a mutable reference to it.
+
+`Buffer` interprets that memory location as a 2D array of size `BUFFER_WIDTH` * `BUFFER_HEIGHT`. Memory accesses to arrays in Rust are bounds checked by default, so we get memory safety. What happens if I write to `col + 100000` though? I would have expected to get a panic, but I don't seem to. Hmm... Can I even observe a panic yet? Not really, it just loops. Okay.
+
+Instead, set `col + 70`, and the row to `BUFFER_HEIGHT - 5`. Then, if bounds aren't checked, I'd expect the whole string to be written to screen. If we panic, I expect to only see part of it. And I do. Nice!
