@@ -41,3 +41,39 @@ Skip adding the `thumbv7em-none-eabihf` target, because we'll be defining our ow
 Try `cargo rustc -- -C link-args="-e __start -static -nostartfiles"`, it runs fine -- ie. does nothing, as expected. (Or is it? `_start` is `loop {}`, should it not run forever?)
 
 Ok nice, easy start so far.
+
+## Part 2: [A Minimal Rust Kernel](https://os.phil-opp.com/minimal-rust-kernel/)
+
+Learn about [POST](https://en.wikipedia.org/wiki/Power-on_self-test), BIOS v UEFI.
+
+I find it funny that we still boot from 16-bit "real mode", to 32-bit "protected mode", and then 64-bit "long mode", for backwards compability reasons with the 8086, which came out over 40 years ago.
+
+Also lol, there is an "[unreal mode](https://en.wikipedia.org/wiki/Unreal_mode)". It seems like it's basically a 32-bit mode without any of the memory protection/paging/virtual memory of the protected mode? Interesting. Does this still work with modern processors?
+
+Luckily, we don't have to write our own bootloader. This is where we get into freaky-deaky hardware land, where everything is magic, undocumented and/or hardware-specific.
+
+Read about GRUB -- this brings back horrible flashbacks. In my experience, if you ever need to mess around in GRUB when using Linux, you are usually in deep shit, and you can expect to spend the next couple of hours trying to unfuck your computer instead of doing what you wanted to do. But hey, we're writing a new kernel, this one is _never_ going to be broken. Luckily we're going to swerve GRUB here. From the drawbacks listed here, it does seem like GRUB sucks a lot. Are there serious alternatives? (Perhaps _written in Rust_?)
+
+The post mentions something about nightly Rust, I hope we can also swerve that, 6 years after the fact.
+
+Add `x86_64-blog_os.json`. Copy and paste here, instead of typing it out as I usually do, because I (a) cba to actually understand what's going on here, and (b) the `data_layout` field looks particularly wild ([docs](https://llvm.org/docs/LangRef.html#data-layout) -- nothing magic, but do not want to have to understand this in detail or god forbid have to debug this). Everything else is fairly self-explanatory.
+
+Learn about [LLD](https://lld.llvm.org/). This is something I've seen floating around (again usually in compiler errors that indicate that you're more deeply screwed than you ever wanted), but never actually knew what it was. Turns out it's a linker shipped with LLVM.
+
+Learn about the ["red zone"](https://os.phil-opp.com/red-zone/). Neat optimization for functions which don't call any other functions.
+
+Very interesting rationale for _not_ enabling SIMD in kernels (`-mmx,-sse`): when enabled, the kernel would need to save SIMD state to main memory on every system call / hardware interrupt. SIMD state can be very large (512-1600 bytes), so this would be really slow. Interesting, had never thought about that.
+
+Interestingly, we then can't use hardware floats, because they use the MMX registers. `+soft-float` emulates these in software. I assume this isn't going to be much of an issue in practise, I don't really know where we'd need floats in a kernel.
+
+Ok, when I run `cargo build --target x86_64-blog_os.json`, I get the ```error[E0463]: can't find crate for `core` ``` error as expected.
+
+I also get a note about ```the `x86_64-blog_os` target may not be installed```, which is a bit more worrying, let's see if that's expected.
+
+Ok, so we do need nightly because of `build-std`. Fine. I had previously installed Rust via Homebrew, uninstall that and install Rustup instead.
+
+First time I try the build it gives me a helpful error telling me to add `rust-src`, which is exactly what I need.
+
+Next try, the build works. Nice!
+
+Interesting that `core` depends on 14 crates. Pretty cool.
